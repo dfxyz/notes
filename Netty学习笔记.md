@@ -564,7 +564,7 @@ class DefaultChannelPipeline {
 }
 
 interface ChannelHandlerContext
-stract class AbstractChannelHandlerContext {
+abstract class AbstractChannelHandlerContext {
     AbstractChannelHandlerContext prev
     AbstractChannelHandlerContext next
 }
@@ -575,7 +575,7 @@ interface ChannelHandler
 interface ChannelInboundHandler
 interface ChannelOutboundHandler
 
-Channel <--> ChannelPipelin
+Channel <--> ChannelPipeline
 ChannelPipeline <|.. DefaultChannelPipeline
 DefaultChannelPipeline  *--  ChannelHandlerContext
 ChannelHandlerContext <|.. AbstractChannelHandlerContext
@@ -1007,7 +1007,7 @@ PoolChunk "1" <--> "*" PooledByteBuf
 ## Recycler
 ```plantuml
 @startuml
-abtract class ObjectPool
+abstract class ObjectPool
 abstract class Recycler {
     T get()
     int maxCapacityPerThread     
