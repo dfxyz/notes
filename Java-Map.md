@@ -2,17 +2,17 @@
 ```plantuml
 @startuml
 class HashMap {
-    {const} float loadFactor
+    const float loadFactor
 
     Entry[] table
     int size
     int threshold
 
-    {volatile} int modCount
+    volatile int modCount
 }
 class Entry {
-    {const} int hash
-    {const} K key
+    const int hash
+    const K key
     V value
     Entry next
 }
@@ -59,21 +59,21 @@ HashMap.Entry <|-- LinkedHashMap.Entry
 ```plantuml
 @startuml
 class ConcurrentHashMap {
-    {const} Segment[] segements
+    const Segment[] segements
 }
 class Segment {
     int modCount
     int threshold
 
-    {volatile} int count
-    {volatile} HashEntry[] table
+    volatile int count
+    volatile HashEntry[] table
 }
 class HashEntry {
-    {const} int hash
-    {const} K key
-    {const} HashEntry next
+    const int hash
+    const K key
+    const HashEntry next
 
-    {volatile} V value
+    volatile V value
 }
 abstract class HashIterator {
     int nextSegmentIndex
