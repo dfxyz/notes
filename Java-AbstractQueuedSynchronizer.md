@@ -141,7 +141,31 @@ Node <-- Thread
 * C把自己设成头节点，虽然`tryAcquireShared`的结果决定不唤醒后继的D，但检查到前头节点的状态是`PROPAGATE`，因此唤醒后继节点D
 
 
-## ReentrantLock
+## `ConditionObject`
+每个`ConditionObject`自己有个`Node`链表，用于排队等待`signal`。
+
+`await()`的流程大致如下：
+* 确保当前独占同步器
+* 新建一个状态为`CONDITION`的节点，插入`ConditionObject`的队列
+* 释放所有同步资源
+* 循环检查该节点是否被插入了同步器的队列（即是否被`signal`），如果不是则挂起线程
+* 走排队获取资源的流程；需要拿与释放时同样多的资源，可能会挂起线程
+* 再次唤醒后，如果检查到有后续等待`signal`的节点，顺便清理一下队列中已取消的节点
+
+如果`await`途中发生了中断或超时，把节点的状态CAS从`CONDITION`改成0，也要插入同步器的队列，排队拿资源等待唤醒。
+
+`signal()`的流程大致如下：
+* 从`ConditionObject`队列中拿出首个正常状态的节点
+    * 头节点出列，尝试CAS把状态从`CONDITION`改成0；如果失败说明该节点被取消了，继续往后找节点
+    * 把出列的节点插入同步器的队列
+    * 修改该节点在同步器队列中前驱节点的`waitStatus`：
+        * 如果前驱节点未取消，尝试CAS将其改成`SIGNAL`状态
+        * 如果前驱节点已经被取消或CAS失败，需要唤醒该节点，走流程修正前驱节点的引用；修正后可能走到队头也可能要继续挂起
+
+`signalAll()`则是持续循环，直到所有节点都出队的瞬时状态。
+
+
+## `ReentrantLock`
 `state`为0时，表示无人拿锁；`state > 0`时，表示某个线程拿了锁。
 
 拿锁操作即`acquire(1)`，拿一个同步资源；`tryAcquire`时，先`getState()`判断当前是否有线程已拿锁：
@@ -151,5 +175,24 @@ Node <-- Thread
 放锁操作即`unlock(1)`，释放一个同步资源；`tryRelease`时，给`state`减一；如果减到0了，则当前线程不再持有锁，清除独占标记。
 
 
-## ReentrantReadWriteLock
+## `ReentrantReadWriteLock`
+`ReentrantReadWriteLock`通过操作同步器`state`的高低位，同时记录了`sharedCount`（记在高16位）和`exclusiveCount`（记在低16位）两个资源计数。
 
+排队策略：
+* 公平锁：拿读锁与拿写锁时如果队列中有等待的节点，就必须排队
+* 非公平锁：拿写锁时可先不排队尝试CAS；拿读锁时，如果队头节点不是等待拿写锁的，可先不排队尝试CAS
+
+拿写锁`tryAcquire()`的过程：
+* 检查`state`
+* 如果`state`不为0，`exclusiveCount`也不为0，且当前线程独占了同步器，直接修改`state`；其他情况下排队
+* 如果`state`等于0，检查排队策略
+    * 如果是公平锁，且队列中有有效的节点，需要排队
+    * 如果是非公平锁，先不排队
+* 尝试CAS修改`state`，设置独占状态；如果失败，排队
+
+拿读锁`tryAcquireShared()`的过程：
+* 检查`state`
+* 如果有人拿了独占资源，且不是当前线程，需要需要排队，返回失败
+* 检查排队策略，如果不需要马上排队，尝试CAS增加`sharedCount`
+* 如果CAS成功，记录当前线程拿到了读锁（记录是否是第一个拿到读锁的线程、以及读锁的持有量），并返回成功
+* 
