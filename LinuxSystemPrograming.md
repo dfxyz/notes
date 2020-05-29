@@ -88,14 +88,4 @@ I/O多路复用：
 
 目录信息：filename -> inode
 
-内存分段：
-* kernel
-* stack
-* ...
-* dynamic libraries - mmap也放这？
-* ...
-* heap
-* data / bss - 全局变量，其中BSS区初始化映射到全0的页面，并copy-on-write
-* text / rodata - 代码、常量等只读数据
-
 内存锁：锁某个内存区域，防止换页
