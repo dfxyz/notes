@@ -82,8 +82,6 @@ abstract class HashIterator {
     HashEntry lastReturned
     HashEntry nextEntry
 }
-ConcurrentHashMap *-- Segment
-Segment *-- HashEntry
 
 ConcurrentHashMap *-- Segment
 Segment *-- HashEntry
@@ -127,3 +125,36 @@ class Entry {
 在JDK8中，`HashMap`的`table`是一个`Node`数组，保存的`Node`引用可以是个链表头节点或者红黑树节点（可能不是根节点）。当`HashMap`的容量超过一定值`MIN_TREEIFY_CAPACITY`，如果插入操作使某个`Node`链表长度超过`TREEIFY_THRESHOLD`，链表会转成红黑树结构；如果删除操作使红黑树容量小于`UNTREEIFY_THRESHOLD`，红黑树转回链表。
 
 `ConcurrentHashMap`的`Segment`也有相同的节点转换机制。
+
+## ConcurrentHashMap
+```plantuml
+@startuml
+class ConcurrentHashMap {
+    volatile Node[] table
+}
+class Node {
+    const int hash
+    const K key
+    volatile V val
+    volatile Node next
+}
+class TreeNode {
+    TreeNode parent
+    TreeNode left
+    TreeNode right
+    TreeNode prev
+    boolean red
+}
+ConcurrentHashMap *-- Node
+Node <|-- TreeNode
+@enduml
+```
+`ConcurrentHashMap`中不再有`Segment`，而是类似`HashMap`只有一个头节点数组。
+`get`：算哈希值找头结点，再通过头结点找对应节点（不拿锁）。
+`put`：
+* 插到空桶里不拿锁，先CAS设置为头结点
+* 检查头结点，如果对应给定的key，可以不拿锁直接改头结点的值
+* 否则拿当前头结点的同步锁，进入临界区后再判断是否当前桶的头结点，如果是，则根据节点是链表节点还是红黑树节点进行修改值或插入新值的操作
+`remove`：
+* 先不拿锁，判断对应的桶是不是null
+* 否则拿当前头结点的同步锁，进入临界区后再判断是否当前桶的头结点，如果是，则根据节点是链表节点还是红黑树节点进行搜索移除操作
