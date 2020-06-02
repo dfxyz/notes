@@ -42,4 +42,4 @@ values: 0001123420
 ..abbaabc.. 
       abbaabbabc # shift 3
 
-试图匹配`haystack[i:]`，`haystack[i+6]`，`needle[6]`不匹配，`values[5] = 2`，所以接下来把`needle`右移`6-2`位，即接下里试图匹配`haystack[i+4:]`，继续比较`haystack[i+6]`与`needle[2]`。
+试图匹配`haystack[i:]`，`haystack[i+6]`与`needle[6]`不匹配，`values[5] = 2`，所以接下来把`needle`右移`6-2`位，即接下里试图匹配`haystack[i+4:]`，继续比较`haystack[i+6]`与`needle[2]`。
