@@ -1,4 +1,4 @@
-# HashMap
+# HashMap(6)
 ```plantuml
 @startuml
 class HashMap {
@@ -35,7 +35,11 @@ JDK6的`HashMap`就是N个`Entry`单向链表构成的数组，`哈希值 & tabl
 `modCount`在`HashMap`结构发生变化之前做自加操作；每次新开一个迭代器时，会记录当时的`modCount`，每次取下一个元素时，会比较`modCount`是否变动以便`fail-fast`。
 
 
-# LinkedHashMap
+# HashMap(8)
+
+
+
+# LinkedHashMap(6)
 ```plantuml
 @startuml
 class LinkedHashMap {
@@ -55,7 +59,7 @@ HashMap.Entry <|-- LinkedHashMap.Entry
 另外，`LinkedHashMap`可用作LRU，也支持按照元素的访问顺序维护`Entry`链表，即`get`操作会把节点移动到链表前端。支持在插入新元素时移除“最旧”的元素。
 
 
-# ConcurrentHashMap
+# ConcurrentHashMap(6)
 ```plantuml
 @startuml
 class ConcurrentHashMap {
@@ -100,7 +104,7 @@ JDK6的`ConcurrentHashMap`是由多个`Segment`构成的整体，`Segment`的数
 `ConcurrentHashMap`在迭代时不会`fail-fast`，在构造时、迭代过程中切换`Segment`时会保存当时的`Segement#table`引用（即保存了旧的链表），因此链表结构并发改变也不会影响迭代过程。调用`remove`方法时会调用`ConcurrentHashMap.remove`拿`Segment`锁进行正常的移除流程。
 
 
-# TreeMap
+# TreeMap(6)
 ```plantuml
 @startuml
 class TreeMap {

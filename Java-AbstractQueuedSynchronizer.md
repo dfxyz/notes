@@ -71,7 +71,7 @@ Node <-- Thread
 
 如果是可中断的版本，从挂起状态恢复时需检查线程的中断标记，并按需抛出中断异常，调用`cancelAcquire`。如果是带超时参数的版本，在循环开始前记录时间戳，在循环过程中比较时间差，超时时调用`cancelAcquire`。
 
-`cancelAcquire()`的流程如下：`
+`cancelAcquire()`的流程如下：
 * 检查并修正当前节点的前驱节点引用
 * 将当前节点的`waitStatus`改成`CANCEL`
 * 更新前驱节点的后继节点为当前节点的后继节点：
@@ -211,4 +211,4 @@ Node <-- Thread
 释放读锁`tryReleaseShared()`的过程：
 * 扣除当前线程的读锁持有量
 * 持续尝试CAS扣除`sharedCount`直至成功
-* 如果`sharedCount == 0`，返回`true`运行排队中的节点尝试获取资源
+* 如果`sharedCount == 0`，返回`true`允许排队中的节点尝试获取资源
